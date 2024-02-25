@@ -1,28 +1,32 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
 import Configuration.Dotenv (defaultConfig, loadFile)
-import Data.Aeson (FromJSON, ToJSON, Value)
+import Data.Aeson (FromJSON (parseJSON), Value, genericParseJSON)
+import Data.Aeson.Casing (aesonPrefix, pascalCase)
+import Data.Aeson.Types (Parser)
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.String (IsString (fromString))
 import Data.Text (Text)
+import Data.Vector (Vector)
 import GHC.Generics
 import Network.HTTP.Conduit (Request (requestBody), Response (responseBody))
-import Network.HTTP.Simple
-  ( JSONException,
-    defaultRequest,
-    getResponseBody,
-    httpJSON,
-    httpJSONEither,
-    setRequestHeader,
-    setRequestHost,
-    setRequestPath,
-    setRequestPort,
-    setRequestQueryString,
-    setRequestSecure,
-  )
+import Network.HTTP.Simple (
+  JSONException,
+  defaultRequest,
+  getResponseBody,
+  httpJSON,
+  httpJSONEither,
+  setRequestHeader,
+  setRequestHost,
+  setRequestPath,
+  setRequestPort,
+  setRequestQueryString,
+  setRequestSecure,
+ )
 import System.Environment (getEnv)
 
 getOpenChargeApiUrl :: IO String
@@ -45,66 +49,44 @@ main = do
                   setRequestHost
                     apiUrl
                     defaultRequest
-  response <- httpJSONEither request :: IO (Response (Either JSONException Poi))
+  response <- httpJSONEither request :: IO (Response (Either JSONException (Vector Poi)))
   print $ getResponseBody response
 
 data Poi = Poi
-  { -- dataProviderPoi :: DataProvider,
-    operatorInfoPoi :: Maybe Text,
-    -- usageTypePoi :: UsageType,
-    -- statusTypePoi :: StatusType,
-    -- submissionStatusPoi :: SubmissionStatus,
-    userCommentsPoi :: Maybe Text,
-    percentageSimilarityPoi :: Maybe Text,
-    mediaItemsPoi :: Maybe Text,
-    isRecentlyVerifiedPoi :: Bool,
-    dateLastVerifiedPoi :: Text,
-    poiIDPoi :: Int,
-    uuidPoi :: Text,
-    parentChargePointIDPoi :: Maybe Text,
-    dataProviderIDPoi :: Int,
-    dataProvidersReferencePoi :: Text,
-    operatorIDPoi :: Maybe Text,
-    operatorsReferencePoi :: Maybe Text,
-    usageTypeIDPoi :: Int,
-    usageCostPoi :: Maybe Text,
-    addressInfoPoi :: AddressInfo,
-    -- connectionsPoi :: Vector Connection,
-    numberOfPointsPoi :: Maybe Text,
-    generalCommentsPoi :: Maybe Text,
-    datePlannedPoi :: Maybe Text,
-    dateLastConfirmedPoi :: Maybe Text,
-    statusTypeIDPoi :: Int,
-    dateLastStatusUpdatePoi :: Text,
-    metadataValuesPoi :: Maybe Text,
-    dataQualityLevelPoi :: Int,
-    dateCreatedPoi :: Text,
-    submissionStatusTypeIDPoi :: Int
+  { poiUserComments :: Maybe Text
+  , poiPercentageSimilarity :: Maybe Text
+  , poiMediaItems :: Maybe Text
+  , poiIsRecentlyVerified :: Bool
+  , poiDateLastVerified :: Text
+  , poiID :: Int
+  , poiUUID :: Text
+  , poiParentChargePointID :: Maybe Text
+  , poiDataProviderID :: Int
+  , poiDataProvidersReference :: Text
+  , poiOperatorID :: Maybe Int
+  , poiOperatorsReference :: Maybe Text
+  , poiUsageTypeID :: Int
+  , poiUsageCost :: Maybe Text
+  , poiNumberOfPoints :: Maybe Text
+  , poiGeneralComments :: Maybe Text
+  , poiDatePlanned :: Maybe Text
+  , poiDateLastConfirmed :: Maybe Text
+  , poiStatusTypeID :: Int
+  , poiDateLastStatusUpdate :: Text
+  , poiMetadataValues :: Maybe Text
+  , poiDataQualityLevel :: Int
+  , poiDateCreated :: Text
+  , poiSubmissionStatusTypeID :: Int
+  -- , addressInfoPOIElement :: AddressInfo
+  -- , connectionsPOIElement :: Vector Connection
+  -- , dataProviderPOIElement :: DataProvider
+  -- , operatorInfoPOIElement :: Maybe OperatorInfo
+  -- , statusTypePOIElement :: StatusType
+  -- , submissionStatusPOIElement :: SubmissionStatus
+  -- , usageTypePOIElement :: UsageType
   }
   deriving (Generic, Show)
 
-data AddressInfo = AddressInfo
-  { addressInfoIDAddressInfo :: Int,
-    titleAddressInfo :: Text,
-    addressLine1AddressInfo :: Text,
-    addressLine2AddressInfo :: Maybe Text,
-    townAddressInfo :: Text,
-    stateOrProvinceAddressInfo :: Text,
-    postcodeAddressInfo :: Text,
-    countryIDAddressInfo :: Int,
-    -- countryAddressInfo :: Country,
-    latitudeAddressInfo :: Float,
-    longitudeAddressInfo :: Float,
-    contactTelephone1AddressInfo :: Text,
-    contactTelephone2AddressInfo :: Maybe Text,
-    contactEmailAddressInfo :: Maybe Text,
-    accessCommentsAddressInfo :: Text,
-    relatedURLAddressInfo :: Text,
-    distanceAddressInfo :: Maybe Text,
-    distanceUnitAddressInfo :: Int
-  }
-  deriving (Generic, Show)
-
-instance FromJSON Poi
-
-instance FromJSON AddressInfo
+instance FromJSON Poi where
+  parseJSON :: Value -> Parser Poi
+  parseJSON = genericParseJSON $ aesonPrefix pascalCase

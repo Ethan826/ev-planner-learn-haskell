@@ -36,6 +36,8 @@ executable ev-planner-learn-haskell
                       http-conduit ^>= 2.3.8.3,
                       aeson ^>= 2.2.1.0,
                       text ^>= 2.1.1,
+                      aeson-casing ^>= 0.2.0.0,
+                      vector ^>= 0.13.1.0,
                       bytestring ^>= 0.12.1.0
     hs-source-dirs:   app
     default-language: Haskell2010
