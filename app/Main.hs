@@ -31,6 +31,7 @@ runApp = do
 
 main :: IO ()
 main = do
+  loadFile defaultConfig
   loadConfig >>= runReaderT runApp
 
 -- response <- liftIO $ httpJSONEither request
